@@ -61,6 +61,10 @@ let currentBlock = {
     movementSpeed: movementMode.slowMode
 };
 
+const defaultScoreEnroll = 3;
+let score = 0;
+
+
 let drawInterval = null;
 
 function play() {
@@ -90,6 +94,7 @@ function draw() {
     if (isBorderReached(currentBlock.position.y, canvas.height)) {
         setBlockInitialPosition();
         currentBlock.color = getRandomBlockColor(colors);
+        changeScore();//just for testing score, delete later
     }
     drawBlock(currentBlock);
     currentBlock.position.y = currentBlock.position.y + movementMode.slowMode;
@@ -113,4 +118,14 @@ function getRandomBlockColor(colors) {
     var colorKeys = Object.keys(colors);
     var colorIndex = getRandomNumberOnInterval(0, colorKeys.length - 1);
     return Object.values(colors)[colorIndex];
+}
+
+function changeScore() {
+    score += defaultScoreEnroll;
+    let scoreElement = document.querySelector("#player-score");
+    scoreElement.innerHTML = score;
+}
+
+function clearScore() { 
+    score = 0;
 }
