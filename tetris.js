@@ -27,10 +27,15 @@ document.addEventListener('keydown', function (e) { //add top-bottom handlers
     if (e.target == canvas) {
         switch (e.keyCode) {
             case arrowHotkeys.left:
-                currentBlock.position.x -= blockSize;
+                if(!isBorderReached(0, currentBlock.position.x)) {
+                    currentBlock.position.x -= blockSize;
+                }   
                 break;
             case arrowHotkeys.right:
-                currentBlock.position.x += blockSize;
+                if(!isBorderReached(currentBlock.position.x, canvas.width - blockSize)) {
+                    currentBlock.position.x += blockSize;
+                }
+                    
                 break;
             case arrowHotkeys.down:
                 currentBlock.movementSpeed = movementMode.fastMode;
@@ -82,7 +87,7 @@ function setBlockInitialPosition() {
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (isBorderReached(currentBlock.position, canvas.height)) {
+    if (isBorderReached(currentBlock.position.y, canvas.height)) {
         setBlockInitialPosition();
         currentBlock.color = getRandomBlockColor(colors);
     }
@@ -93,7 +98,7 @@ function draw() {
 
 function isBorderReached(position, border) {
     let borderReached = false;
-    if (position.y >= border - blockSize)
+    if (position >= border - blockSize)
         borderReached = true;
     return borderReached;
 }
