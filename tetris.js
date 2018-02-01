@@ -87,7 +87,7 @@ function draw() {
         currentBlock.color = getRandomBlockColor(colors);
     }
     drawBlock(currentBlock);
-    currentBlock.position.y = currentBlock.position.y + movementSpeed;
+    currentBlock.position.y = currentBlock.position.y + movementMode.slowMode;
 }
 
 
