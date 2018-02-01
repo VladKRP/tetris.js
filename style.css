@@ -1,0 +1,45 @@
+html {
+    background: #114357;  /* fallback for old browsers */
+    background: -webkit-linear-gradient(to bottom, #F29492, #114357);  /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to bottom, #F29492, #114357); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+    height:100vh;
+    
+}
+
+body{
+    margin:0 auto;
+    color:#444;
+}
+
+header{
+    text-align: center;
+}
+
+header p{
+    margin:0.7em;
+    font-size: 19px;
+}
+
+#game-window{
+    background-color:#333;
+    width:400px;
+    height:400px;
+    margin:0 auto;
+    box-shadow: 5px 5px #114357;
+    text-align: center;
+    padding:1em;
+}
+
+.play-btn{
+    background-color:inherit;
+    border: 2px solid #eee;
+    padding:7px 16px;
+    color:#eee;
+    font-size: 14px;
+}
+
+.game-section{
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
