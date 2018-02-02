@@ -25,6 +25,7 @@ header p{
     height:100%;
     background-color:#333;
     box-shadow: 5px 5px #114357;
+    outline: none;
 }
 
 .game-btn{
@@ -51,4 +52,9 @@ header p{
 .game-section .navigation{
     text-align: center;
     margin: 0.2em;
+}
+
+
+.game-section .score{
+    text-align: right;
 }
