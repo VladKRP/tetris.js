@@ -202,9 +202,9 @@ function moveBlockHorizontally(block, isLeftDirection) {
     }
 }
 
-// function moveBlockDown(block, movementMode) {
-//     block.position.y += movementMode;
-// }
+function moveBlockDown(block, movementMode) {
+    block.position.y += movementMode;
+}
 
 //Random
 
