@@ -7,6 +7,18 @@ class Block {
     }
 }
 
+class Shape {
+    constructor(blocks, color) {
+        this.blocks = blocks;
+        this.color = color;
+        this.setBlocksColor();
+    }
+
+    setBlocksColor() {
+        this.blocks.forEach(block => block.color = this.color);
+    }
+}
+
 class Position {
     constructor(x, y) {
         this.x = x;
@@ -33,7 +45,7 @@ const movementMode = {
     fast: 2
 }
 
-const blockSize = 23;
+const blockSize = 24;
 const blockMargin = 1;
 const maxBlockLength = 3;
 
@@ -82,10 +94,22 @@ function gameOver() {
     alert("Game over");
 }
 
-let currentBlock = new Block(new Position(canvas.width / 2, 0), getRandomBlockColor(colors), blockSize);
+let canvasCenter = canvas.width / 2.0 + blockMargin;
+
+let currentBlock = new Block(new Position(canvasCenter, 0), getRandomBlockColor(colors), blockSize);
 let passedBlocks = [];
 let movementSpeed = movementMode.fast;//change later
 
+let blocks = [
+    new Block(new Position(0, 0), size = blockSize, color = "#111"), 
+    new Block(new Position(0 + (blockSize / 2.0)), color = "#111", size = blockSize),
+    new Block(new Position(0 + (blockSize / 2.0)), color = "#111", size = blockSize),
+    new Block(new Position(0 + (blockSize / 2.0)), color = "#111", size = blockSize),
+];
+let shape = new Shape(blocks);
+
+
+let 
 
 const defaultScoreEnroll = 3;
 let score = 0;
@@ -97,7 +121,7 @@ changeRecord(score);//for test
 
 function drawBlock(block) {
     ctx.beginPath();
-    ctx.rect(block.position.x, block.position.y, block.size, block.size / 2);
+    ctx.rect(block.position.x, block.position.y, block.size, block.size / 2.0);
     ctx.fillStyle = block.color;
     ctx.fill();
     ctx.closePath();
@@ -112,23 +136,31 @@ function drawPassedBlocks(blocks) {
 }
 
 function getNextBlock() {
-    return new Block(new Position(canvas.width / 2, 0), getRandomBlockColor(colors), blockSize);
+    return new Block(new Position(canvasCenter, 0), getRandomBlockColor(colors), blockSize);
 }
 
 function draw() {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawGrid();
 
+    drawPassedBlocks(blocks);
     //here should be restoring previously added blocks
     //should be redraw not each time, but window clear every time
     drawPassedBlocks(passedBlocks);
 
     let verticalBarrier = getVerticalBarrierBlock(currentBlock, passedBlocks);
     if (verticalBarrier) {
-        currentBlock.position.y = verticalBarrier.position.y - ((blockSize / 2) + blockMargin);
+        currentBlock.position.y = verticalBarrier.position.y - (blockSize / 2.0) - 0.5;
     }
 
-    if (isBorderReached(currentBlock.position.y, canvas.height, currentBlock.size) || verticalBarrier) {
+    let isBorder = isBorderReached(currentBlock.position.y, canvas.height, (blockSize / 2.0));
+    if (isBorder) {
+        currentBlock.position.y = canvas.height - (blockSize / 2.0);
+    }
+
+    if (isBorder || verticalBarrier) {
+
         passedBlocks.push(currentBlock);
         currentBlock = getNextBlock();
 
@@ -143,15 +175,24 @@ function draw() {
     moveBlockDown(currentBlock, movementMode.fast);//to change later
 }
 
+function drawGrid() {
+    for (var i = 0; i < canvas.height; i += ((blockSize + blockMargin) / 2.0)) {
+
+        for (var j = 1; j < canvas.width; j += blockSize + blockMargin) {
+            drawBlock(new Block(new Position(j, i), "#fff", blockSize));
+        }
+    }
+}
+
 function isBlockDetectedHorizontally(currentBlock, passedBlocks, isLeft) {
     let isDetected = false;
     if (passedBlocks && passedBlocks.length > 0) {
-        let sameLevelBlocks = passedBlocks.filter(block =>  block.position.y > currentBlock.position.y && currentBlock.position.y + blockSize + 1 > block.position.y);
+        let sameLevelBlocks = passedBlocks.filter(block => block.position.y > currentBlock.position.y && currentBlock.position.y + blockSize + 1 > block.position.y);
         let horizontallBlocksBarrier;
-        if(isLeft) {
-            horizontallBlocksBarrier = sameLevelBlocks.filter(block => currentBlock.position.x > block.position.x  && currentBlock.position.x - blockSize - (blockMargin * 2) < block.position.x);
+        if (isLeft) {
+            horizontallBlocksBarrier = sameLevelBlocks.filter(block => currentBlock.position.x > block.position.x && currentBlock.position.x - blockSize - (blockMargin * 2) < block.position.x);
         } else {
-            horizontallBlocksBarrier = sameLevelBlocks.filter(block => currentBlock.position.x < block.position.x  && currentBlock.position.x + blockSize + (blockMargin * 2) > block.position.x);
+            horizontallBlocksBarrier = sameLevelBlocks.filter(block => currentBlock.position.x < block.position.x && currentBlock.position.x + blockSize + (blockMargin * 2) > block.position.x);
         }
         if (horizontallBlocksBarrier && horizontallBlocksBarrier.length) {
             isDetected = true;
@@ -190,7 +231,7 @@ function isAnyBlockOnPosition(passedBlocks) {
 //remind(something wrong here)
 function isBorderReached(position, border, blockSize) {
     let borderReached = false;
-    if (position >= border - blockSize + blockMargin)
+    if (position >= border - blockSize)
         borderReached = true;
     return borderReached;
 }
@@ -202,6 +243,8 @@ function moveBlockHorizontally(block, isLeftDirection) {
         block.position.x += blockSize + blockMargin;
     }
 }
+
+
 
 function moveBlockDown(block, movementMode) {
     block.position.y += movementMode;
