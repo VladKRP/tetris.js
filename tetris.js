@@ -52,9 +52,9 @@ document.addEventListener('keydown', function (e) { //add top handler
                     moveBlockHorizontally(currentBlock, false);
                 }
                 break;
-            case arrowHotkeys.down:
-                moveBlockDown(currentBlock, movementMode.fast);
-                break;
+            // case arrowHotkeys.down:
+            //     moveBlockDown(currentBlock, movementMode.fast);
+            //     break;
             case arrowHotkeys.up: break;//to do, block rotating
         }
     }
@@ -182,7 +182,7 @@ function getVerticalBarrierBlock(currentBlock, passedBlocks) {
 // }
 
 function isAnyBlockOnPosition(passedBlocks) {
-    return passedBlocks.some(block => block.position.y > 0 && block.position.y < blockSize);
+    return passedBlocks.some(block => block.position.y > 0 && block.position.y < blockSize - blockMargin * 2);
 }
 
 //remind(something wrong here)
