@@ -76,6 +76,7 @@ function stop() {
 function gameOver() {
     stop();
     passedBlocks = [];
+    score = 0;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     changeRecord(score);
     alert("Game over");
