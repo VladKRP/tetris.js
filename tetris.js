@@ -1,6 +1,6 @@
 
 class Block {
-    constructor(position, color, size = 23) {
+    constructor(position, color, size) {
         this.position = position;
         this.color = color;
         this.size = size;
@@ -35,6 +35,7 @@ const movementMode = {
 
 const blockSize = 23;
 const blockMargin = 1;
+const maxBlockLength = 3;
 
 var canvas = document.querySelector("#tetris-game");
 var ctx = canvas.getContext("2d");
@@ -80,7 +81,7 @@ function gameOver() {
     alert("Game over");
 }
 
-let currentBlock = new Block(new Position(canvas.width / 2, 0), getRandomBlockColor(colors));
+let currentBlock = new Block(new Position(canvas.width / 2, 0), getRandomBlockColor(colors), blockSize);
 let passedBlocks = [];
 let movementSpeed = movementMode.fast;//change later
 
@@ -95,7 +96,7 @@ changeRecord(score);//for test
 
 function drawBlock(block) {
     ctx.beginPath();
-    ctx.rect(block.position.x, block.position.y, blockSize, blockSize / 2);
+    ctx.rect(block.position.x, block.position.y, block.size, block.size / 2);
     ctx.fillStyle = block.color;
     ctx.fill();
     ctx.closePath();
@@ -110,7 +111,7 @@ function drawPassedBlocks(blocks) {
 }
 
 function getNextBlock() {
-    return new Block(new Position(canvas.width / 2, 0), getRandomBlockColor(colors));
+    return new Block(new Position(canvas.width / 2, 0), getRandomBlockColor(colors), blockSize);
 }
 
 function draw() {
@@ -201,11 +202,11 @@ function moveBlockHorizontally(block, isLeftDirection) {
     }
 }
 
-function moveBlockDown(block, movementMode) {
-    block.position.y += movementMode;
-}
+// function moveBlockDown(block, movementMode) {
+//     block.position.y += movementMode;
+// }
 
-//Color randomizer
+//Random
 
 function getRandomNumberOnInterval(min, max) {
     min = Math.ceil(min);
@@ -217,6 +218,10 @@ function getRandomBlockColor(colors) {
     var colorKeys = Object.keys(colors);
     var colorIndex = getRandomNumberOnInterval(0, colorKeys.length - 1);
     return Object.values(colors)[colorIndex];
+}
+
+function getRandomBlockSize(maxBlockLength) {
+    return getRandomNumberOnInterval(1, maxBlockLength);
 }
 
 //Score logic
