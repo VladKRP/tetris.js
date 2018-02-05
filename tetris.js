@@ -1,4 +1,3 @@
-
 let shapeTypes = [
     [
         [0, 0, 0],
@@ -48,13 +47,53 @@ class Block {
     }
 }
 
+class Shape {
+
+    constructor(shapeType, position, color, blockSize, blockMargin) {
+        this.blocks = [];
+        this.color = color || "";
+        this.shapeType = shapeType || [];
+        this.position = position || new Position(0, 0);
+        this.blockSize = blockSize || 0;
+        this.blockMargin = blockMargin || 0;
+        this.create();
+    }
+
+    create() {
+        this.blocks = [];
+        for (var i = 0; i < this.shapeType.length; i++) {
+            for (var j = 0; j < this.shapeType[i].length; j++) {
+                if (this.shapeType[i][j])
+                    this.blocks.push(
+                        new Block(
+                            new Position(
+                                this.position.x + (this.blockSize + this.blockMargin) * j,
+                                this.position.y + (i * (this.blockSize + this.blockMargin) / 2.0)
+                            ), this.color, this.blockSize)
+                    );
+            }
+        }
+    }
+
+    rotate() {
+        let reversedMatrix = this.shapeType.reverse();
+        this.shapeType = reversedMatrix[0].map((col, i) => reversedMatrix.map(row => row[i]));
+        this.create();
+    }
+
+    changePosition(position) {
+        this.position = position;
+        this.create();
+    }
+}
+
 const colors = {
     red: "#EB3349",
     blue: "#24C6DC",
-    green: "#93EDC7",
-    yellow: "#EDDE5D",
-    grey:"#808080",
-    purple:"#808080"
+    // green: "#93EDC7",
+    // yellow: "#EDDE5D",
+    // grey:"#808080",
+    // purple:"#808080"
 };
 
 const hotkeys = {
@@ -66,106 +105,100 @@ const hotkeys = {
 
 const movementMode = {
     slow: 1,
-    fast: 2
-}
+    fast: 1.3
+};
 
 const blockSize = 24;
 const blockMargin = 1;
 
 var canvas = document.querySelector("#tetris-game");
+let canvasCenter = canvas.width / 2.0 + blockMargin;
 var ctx = canvas.getContext("2d");
+
+let blocksInLine = canvas.width / (blockSize + blockMargin);
 
 
 let drawInterval = null;
 
+const defaultScoreEnroll = 3;
+let score = 0;
+
+document.querySelector("#total-player-score");
+changeRecord(score);
+
+let currentShape = new Shape(getRandomShape(shapeTypes), new Position(canvasCenter, 0), getRandomColor(colors), blockSize, blockMargin);
+let movementSpeed = movementMode.fast;
+let passedBlocks = [];
+
 function play() {
-    //issue when typing on button a lot of time
     drawInterval = setInterval(draw, 40);
+    let btn = document.querySelector("#play-btn");
+    btn.setAttribute("disabled","");
     canvas.focus();
 }
 
 function stop() {
     clearInterval(drawInterval);
+    let btn = document.querySelector("#play-btn");
+    btn.removeAttribute("disabled");
 }
 
 function gameOver() {
     stop();
     score = 0;
+    passedBlocks = [];
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     changeRecord(score);
     alert("Game over");
 }
 
-let canvasCenter = canvas.width / 2.0 + blockMargin;
-let movementSpeed = movementMode.fast; //change later
+function getNextShape() {
+    return new Shape(getRandomShape(shapeTypes), new Position(canvasCenter, 0), getRandomColor(colors), blockSize, blockMargin);
+}
 
-
-
-class Shape {
-
-    constructor(shapeType, position,  color, blockSize, blockMargin) {
-        this.blocks = [];
-        this.color = color || "";
-        this.shapeType = shapeType || [];
-        this.position = position || new Position(0,0);
-        this.blockSize = blockSize || 0;
-        this.blockMargin = blockMargin || 0;
-    }
-
-    create(){
-        this.blocks = [];
-        for (var i = 0; i < this.shapeType.length; i++) {
-            for (var j = 0; j < this.shapeType[i].length; j++) {
-                if (this.shapeType[i][j])
-                    this.blocks.push(
-                        new Block(
-                            new Position(
-                                this.position.x + (this.blockSize + this.blockMargin) * j,
-                                this.position.y + (i * (this.blockSize + this.blockMargin) / 2.0)
-                            ), this.color, this.blockSize)
-                        );
+document.addEventListener('keydown', function (e) {
+    if (e.target == canvas) {
+        switch (e.keyCode) {
+            case hotkeys.left:
+                if (!isShapeReachLeftBorder(currentShape) && !hasHorizontalBarriers(currentShape, passedBlocks, true))
+                    moveShapeLeft(currentShape);
+                break;
+            case hotkeys.right:
+                if (!isShapeReachRightBorder(currentShape)  && !hasHorizontalBarriers(currentShape, passedBlocks, false))
+                    moveShapeRight(currentShape);
+                break;
+            case hotkeys.up: {
+                if (!isShapeReachLeftBorder(currentShape)  && !isShapeReachRightBorder(currentShape) )
+                    currentShape.rotate();
+                break;
             }
         }
     }
+});
 
-    rotate(){
-        this.shapeType = this.shapeType.map((col, i) => this.shapeType.map(row => row[i]));
-        this.create();
-    }
-
-    changePosition(position){
-        this.position = position;
-        this.create();
-    }
+function isShapeReachLeftBorder(shape) {
+    return shape.blocks.some(block => 0 >= block.position.x - shape.blockSize);
 }
 
+function moveShapeLeft(shape) {
+    shape.changePosition(new Position(shape.position.x -= shape.blockSize + shape.blockMargin, shape.position.y));
+}
+
+function isShapeReachRightBorder(shape) {
+    return shape.blocks.some(block => canvas.width <= block.position.x + shape.blockSize);
+}
+
+function moveShapeRight(shape) {
+    shape.changePosition(new Position(shape.position.x += shape.blockSize + shape.blockMargin, shape.position.y));
+}
+
+function isShapeReachBottomBorder(shape, border) {
+    return shape.blocks.some(block => block.position.y >= border - (shape.blockSize / 2.0) - shape.blockMargin);
+}
 
 function moveShapeDown(shape, movementMode) {
     shape.changePosition(new Position(shape.position.x, shape.position.y += movementMode));
 }
-
-function moveShapeHorizontally(shape, isLeftDirection) {
-    if (isLeftDirection) {
-        shape.changePosition(new Position(shape.position.x -= blockSize + blockMargin, shape.position.y));
-    } else {
-        shape.changePosition(new Position(shape.position.x += blockSize + blockMargin, shape.position.y));
-    }
-}
-
-let currentShape = new Shape(getRandomShape(shapeTypes), new Position(canvasCenter, 0), getRandomColor(colors), blockSize, blockMargin);
-currentShape.create();
-
-let passedShapes = [];
-
-
-const defaultScoreEnroll = 3;
-let score = 0;
-
-//
-document.querySelector("#total-player-score");
-changeRecord(score); //for test
-//
-
 
 function drawBlock(block) {
     ctx.beginPath();
@@ -176,187 +209,121 @@ function drawBlock(block) {
 }
 
 function drawShape(shape) {
-    if (shape && shape.blocks && shape.blocks.length) {
+    if (shape) {
         shape.blocks.forEach(block => drawBlock(block));
     }
 }
 
-function drawPassedShapes(shapes) {
-    if (shapes && shapes.length) {
-        shapes.forEach(shape => drawShape(shape));
+function drawPassedBlocks(passedBlocks) {
+    if (passedBlocks && passedBlocks.length) {
+        passedBlocks.forEach(block => drawBlock(block));
     }
-}
-
-function drawGrid() {
-    for (var i = 0; i < canvas.height; i += ((blockSize + blockMargin) / 2.0)) {
-        for (var j = 1; j < canvas.width; j += blockSize + blockMargin) {
-            drawBlock(new Block(new Position(j, i), "#e5e5e5", blockSize));
-        }
-    }
-}
-
-function getNextShape() {
-    var shape = new Shape(getRandomShape(shapeTypes), new Position(canvasCenter, 0), getRandomColor(colors), blockSize, blockMargin);
-    shape.create();
-    return shape;
-}
-
-document.addEventListener('keydown', function (e) { //add top handler
-    if (e.target == canvas) {
-        switch (e.keyCode) {
-            case hotkeys.left:
-                if (!isShapeReachHorizontalBorder(currentShape, blockSize, true) && !hasHorizontalBarriers(currentShape, passedShapes, true))//check horizontal blocks
-                    moveShapeHorizontally(currentShape, true);
-                break;
-            case hotkeys.right:
-                if (!isShapeReachHorizontalBorder(currentShape, blockSize, false))
-                    moveShapeHorizontally(currentShape, false);
-                break;
-
-            case hotkeys.up:{
-                if (!isShapeReachHorizontalBorder(currentShape, blockSize, false) && !isShapeReachHorizontalBorder(currentShape, blockSize, true))
-                    currentShape.rotate();
-                break; //to do, block rotating
-            }
-            
-        }
-    }
-
-});
-
-function isShapeReachHorizontalBorder(shape, blockSize, isLeftBorder) {
-    let isBorderReached = false;
-    if (isLeftBorder) {
-        if (shape.blocks.some(block => 0 >= block.position.x - blockSize))
-            isBorderReached = true;
-    } else {
-        if (shape.blocks.some(block => block.position.x + blockSize >= canvas.width))
-            isBorderReached = true;
-    }
-    return isBorderReached;
-}
-
-function isShapeReachBottomBorder(shape, border, blockSize) {
-    let borderReached = false;
-    if (shape.blocks.some(block => block.position.y >= border - blockSize))
-        borderReached = true;
-    return borderReached;
 }
 
 function draw() {
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawGrid();
-
     //here should be restoring previously added blocks
     //should be redraw not each time, but window clear every time
-    drawPassedShapes(passedShapes);
+    drawPassedBlocks(passedBlocks);
     drawShape(currentShape);
 
-    if (isShapeReachBottomBorder(currentShape, canvas.height - blockMargin, (blockSize / 2.0)) || hasVerticalBarriers(currentShape, passedShapes)) {
-        passedShapes.push(currentShape);
+    if (isShapeReachBottomBorder(currentShape, canvas.height) || hasVerticalBlockBarriers(currentShape, passedBlocks)) {
+        currentShape.blocks.forEach(block => passedBlocks.push(block));
         currentShape = getNextShape();
+        clearLines();
+        if(passedBlocks.some(block => block.position.y > 0 && block.position.y <= block.size + block.blockMargin))//don't work
+            gameOver();
     }
-    
     moveShapeDown(currentShape, movementMode.fast);
 }
 
-function getPassedBlocks(passedShapes){
-    let blocks = passedShapes.map(x => x.blocks);
-    return blocks.reduce((x,y) => x.concat(y), []);
-}
+// function drawGrid() {
+//     for (var i = 0; i < canvas.height; i += ((blockSize + blockMargin) / 2.0)) {
+//         for (var j = 1; j < canvas.width; j += blockSize + blockMargin) {
+//             drawBlock(new Block(new Position(j, i), "#e5e5e5", blockSize));
+//         }
+//     }
+// }
 
-function getShapeLowestVerticalBlocks(shape){
-    let shapeBlocksCoordinates = [...new Set(shape.blocks.map(block => block.position.x))];
-    var blocksWithLowestVerticalPosition = shapeBlocksCoordinates.map(x => {
-        return new Object(x, Math.max(...shape.blocks.filter(block => block.position.x === x).map(block => block.position.y)));
+
+function getShapeLowestBlocksPosition(shape) {
+    let shapeBlocksHorizontalCoordinates = [...new Set(shape.blocks.map(block => block.position.x))];
+    return shapeBlocksHorizontalCoordinates.map(x => {
+        return new Position(x, Math.max(...shape.blocks.filter(block => block.position.x === x).map(block => block.position.y)));
     });
-    return shape.blocks.filter(block => 
-        blocksWithLowestVerticalPosition.some(lblock => 
-            lblock.x === block.position.x && lblock.position.y === block.position.y));
 }
 
-function hasVerticalBarriers(shape, passedShapes) {
+function getVerticalBarriersBlocks(passedBlocks, positions) {
+    return passedBlocks.filter(block => positions.some(bposition => bposition.x === block.position.x && block.position.y >= bposition.y && block.position.y - (blockSize / 2.0) - blockMargin <= bposition.y));
+}
+
+function hasVerticalBlockBarriers(shape, passedBlocks) {
     let hasBarriers = false;
-    var lowestBlocks = getShapeLowestVerticalBlocks(shape);
-    console.log(lowestBlocks);
-    if (passedShapes && passedShapes.length) {
-        let verticalBarriers =  getPassedBlocks(passedShapes)
-                                    .filter(block => shapeBlocksCoordinates.some(coord => block.position.x === coord));
-        console.table(verticalBarriers);
-        let barriersMinVerticalCoord = Math.min(...verticalBarriers.map(block => block.position.y));      
-        console.table("min" + barriersMinVerticalCoord);
-                                    // .filter(block => {
-                                    //     return blocksWithHighestVerticalPosition.every(position => {
-                                    //             return position < block.position.y && position + (blockSize / 2.0) + blockMargin >=  block.position.y;
-                                    //         })
-                                    //     });
-        // if(verticalBarriers && verticalBarriers.length)
-        //     hasBarriers = true;
-    }
+    var lowestBlocksPosition = getShapeLowestBlocksPosition(shape);
+    var barriers = getVerticalBarriersBlocks(passedBlocks, lowestBlocksPosition);
+    if (barriers && barriers.length)
+        hasBarriers = true;
     return hasBarriers;
 }
 
-function hasHorizontalBarriers(shape, passedShapes, isLeft){
+function hasHorizontalBarriers(shape, passedBlocks, isLeft) {//refactor
     let hasBarrier = false;
-    if(isLeft){
+    if (isLeft) {
         let shapeMinHorizontalPosition = Math.min(...shape.blocks.map(block => block.position.x));
         let shapeMinVerticalPosition = Math.min(...shape.blocks.map(block => block.position.y));
         let minPositionBlocks = shape.blocks.filter(block => block.position.x === shapeMinHorizontalPosition);
         let height = minPositionBlocks.length * shape.blockSize + minPositionBlocks.length * shape.blockMargin;
-        let horizontalBarriers = getPassedBlocks(passedShapes)
-                                             .filter(block => block.position.x < shapeMinHorizontalPosition && block.position.x + blockSize + blockMargin >= shapeMinHorizontalPosition)
-                                             .filter(block => block.position.y > shapeMinVerticalPosition && block.position.y <= shapeMinVerticalPosition + height );
-        
-                                             console.table(horizontalBarriers);
-        if(horizontalBarriers && horizontalBarriers.length)
+        let horizontalBarriers = passedBlocks
+            .filter(block => block.position.x < shapeMinHorizontalPosition && block.position.x + shape.blockSize + shape.blockMargin >= shapeMinHorizontalPosition)
+            .filter(block => block.position.y > shapeMinVerticalPosition && block.position.y <= shapeMinVerticalPosition + height);
+        if (horizontalBarriers && horizontalBarriers.length)
             hasBarrier = true;
     } else {
-        let shapeMaxHorizontalPosition = Math.max(...shape.map(block => block.position.x));
+        let shapeMaxHorizontalPosition = Math.max(...shape.blocks.map(block => block.position.x));
         var shapeMinVerticalPosition = Math.min(...shape.blocks.map(block => block.position.y));
         var maxPositionBlocks = shape.blocks.filter(block => block.position.x === shapeMaxHorizontalPosition);
-        var height = minPositionBlocks.length * shape.blockSize + minPositionBlocks.length * shape.blockMargin;
-        var horizontalBarriers = getPassedBlocks(passedShapes)
-                                             .filter(block => block.position.x > shapeMaxHorizontalPosition && block.position.x - blockSize - blockMargin < shapeMaxHorizontalPosition)
-                                             .filter(block => block.position.y > shapeMaxHorizontalPosition && block.position.y <= shapeMaxHorizontalPosition + height );
-        
+        var height = maxPositionBlocks.length * shape.blockSize + maxPositionBlocks.length * shape.blockMargin;
+        var horizontalBarriers = passedBlocks
+            .filter(block => block.position.x >= shapeMaxHorizontalPosition && block.position.x - shape.blockSize - shape.blockMargin <= shapeMaxHorizontalPosition)
+            .filter(block => block.position.y >= shapeMaxHorizontalPosition && block.position.y <= shapeMaxHorizontalPosition + height);
+
     }
     return hasBarrier;
 }
 
-// function isBlockDetectedHorizontally(currentBlock, passedBlocks, isLeft) {
-//     let isDetected = false;
-//     if (passedBlocks && passedBlocks.length > 0) {
-//         let sameLevelBlocks = passedBlocks.filter(block => block.position.y > currentBlock.position.y && currentBlock.position.y + blockSize + 1 > block.position.y);
-//         let horizontallBlocksBarrier;
-//         if (isLeft) {
-//             horizontallBlocksBarrier = sameLevelBlocks.filter(block => currentBlock.position.x > block.position.x && currentBlock.position.x - blockSize - (blockMargin * 2) < block.position.x);
-//         } else {
-//             horizontallBlocksBarrier = sameLevelBlocks.filter(block => currentBlock.position.x < block.position.x && currentBlock.position.x + blockSize + (blockMargin * 2) > block.position.x);
-//         }
-//         if (horizontallBlocksBarrier && horizontallBlocksBarrier.length) {
-//             isDetected = true;
-//         }
-//     }
-//     return isDetected;
-// }
+function getLineBlocks(passedBlocks, line) {
+    return passedBlocks.filter(block => block.position.y >= line && block.position.y - block.size - blockMargin <= line);
+}
+
+function clearLines() {
+    let lines = [...new Set(passedBlocks.map(block => block.position.y))];
+    lines.forEach(line => {
+        let lineBlocks = getLineBlocks(passedBlocks, line);
+        if (isAllBlocksInLineHasSameColor(lineBlocks)) {
+            console.log("yep");
+            let clearedLines = passedBlocks.filter(block => block.position.y < line);
+            passedBlocks = getMovedDownBlocks(clearedLines, line);
+            score += 10;
+            changeScore(score);
+        }
+    });
+}
+
+function isAllBlocksInLineHasSameColor(lineBlocks) {
+    let blocksHasSameColor = false;
+    if (lineBlocks.length == blocksInLine && lineBlocks.every(block => block.color === lineBlocks[0].color)) {
+        blocksHasSameColor = true;
+    }
+    return blocksHasSameColor;
+}
 
 
-//When all blocks has same color in line, delete blocks from line + add score
-// function isAllBlockHasSameColor(passedBlocks, yPosition) {
-//     if (passedBlocks && passedBlocks.length > 0) {
-//         let isFilled = false;
-//         let lineBlocks = passedBlocks.filter(block => block.position.y === yPosition);
-//         if (lineBlocks && lineBlocks.length > 0) {
-//             let lineSize = lineBlocks.reduce((block, res) => res += block.size);
-//             console.log(lineSize);
-//         }
-//     }
-// }
+function getMovedDownBlocks(passedBlocks, line) {
+    let blocks = passedBlocks.filter(block => block.position.y > line);
+    blocks.forEach(block => block.position.y -= block.size + block.blockMargin);
+    return blocks;
+}
 
-// function isAnyBlockOnPosition(passedBlocks) {
-//     return passedBlocks.some(block => block.position.y > 0 && block.position.y < blockSize - blockMargin * 2);
-// }
 
 //Random
 
