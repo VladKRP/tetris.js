@@ -141,12 +141,12 @@ class ShapeMovement{
 }
 
 const colors = {
-    red: "#EB3349",
+    //red: "#EB3349",
     // blue: "#24C6DC",
-    green: "#93EDC7",
+    //green: "#93EDC7",
     yellow: "#EDDE5D",
     // grey:"#808080",
-    purple:"#808080"
+    // purple:"#808080"
 };
 
 const hotkeys = {
@@ -197,8 +197,8 @@ function startGameCycle(){
         clearLines();
         if (passedBlocks.some(block => block.position.y >= 0 && block.position.y <= (block.size + blockMargin) / 2.0))
             gameOver();
-            //console.table(currentShape.blocks.map(block => block.position.y));
     }
+    
     let shapeMovement = new ShapeMovement(currentShape);
     shapeMovement.moveDown(movementMode.fast);
 }
@@ -369,10 +369,15 @@ function hasRightBlockBarriers(shape, passedBlocks) {
 function clearLines() {
     let lines = [...new Set(passedBlocks.map(block => block.position.y))];
     lines.forEach(line => {
+        console.table(passedBlocks.map(block => block.position));
         let lineBlocks = passedBlocks.filter(block => block.position.y === line);
+        
         if (isAllBlocksInLineHasSameColor(lineBlocks)) {
-            let aboveLineBlocks  = passedBlocks.filter(block => block.position.y < line);       
-            passedBlocks = getMovedDownBlocks(aboveLineBlocks, line).concat(passedBlocks.filter(block => block.position.y > line));
+            let aboveLineBlocks  = passedBlocks.filter(block => block.position.y < line);     
+            let belowLineBlocks =  passedBlocks.filter(block => block.position.y > line);
+            aboveLineBlocks = getMovedDownBlocks(aboveLineBlocks, belowLineBlocks, line);
+            console.table(aboveLineBlocks);
+            passedBlocks = belowLineBlocks.concat(aboveLineBlocks);
             score += 10;
             changeScore(score);
         }
@@ -383,8 +388,21 @@ function isAllBlocksInLineHasSameColor(lineBlocks) {
     return lineBlocks.length == blocksInLine && lineBlocks.every(block => block.color === lineBlocks[0].color);
 }
 
-function getMovedDownBlocks(blocks, line) {
-    return blocks.forEach(block => block.position.y += (block.size + blockMargin) / 2.0);
+function getMovedDownBlocks(blocks, existingBlocks, line) {
+
+    for(var i = 0; i < blocks.length; i++){
+        let block = blocks[i];
+        let newBlockVerticalPosition = block.position.y; 
+        let belowBlocks = existingBlocks.some(eblock => eblock.position.x === block.position.x && eblock.position.y === newBlockVerticalPosition + (block.size + blockMargin) / 2.0);
+       
+        while(newBlockVerticalPosition + ((block.size + blockMargin) / 2.0) === canvas.height || belowBlocks){
+            continue;
+        }
+        newBlockVerticalPosition +=  (block.size + blockMargin) / 2.0;
+        block.position.y = newBlockVerticalPosition;   
+    }
+
+    return blocks;
 }
 
 
