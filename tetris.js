@@ -141,10 +141,10 @@ class ShapeMovement{
 const colors = {
     red: "#EB3349",
     // blue: "#24C6DC",
-    // green: "#93EDC7",
-    // yellow: "#EDDE5D",
+    green: "#93EDC7",
+    yellow: "#EDDE5D",
     // grey:"#808080",
-    // purple:"#808080"
+    purple:"#808080"
 };
 
 const hotkeys = {
@@ -155,8 +155,8 @@ const hotkeys = {
 };
 
 const movementMode = {
-    slow: 1,
-    fast: 1.3
+    slow: 0.2,
+    fast: 0.5
 };
 
 const blockSize = 24;
@@ -166,7 +166,7 @@ var canvas = document.querySelector("#tetris-game");
 let canvasCenter = canvas.width / 2.0 + blockMargin;
 var ctx = canvas.getContext("2d");
 
-let blocksInLine = canvas.width / (blockSize + blockMargin);
+let blocksInLine = 12;
 
 let drawInterval = null;
 
@@ -181,10 +181,24 @@ let movementSpeed = movementMode.fast;
 let passedBlocks = [];
 
 function play() {
-    drawInterval = setInterval(draw, 40);
+    drawInterval = setInterval(startGameCycle, 15);
     let btn = document.querySelector("#play-btn");
     btn.setAttribute("disabled", "");
     canvas.focus();
+}
+
+function startGameCycle(){
+    draw();
+    if (isShapeReachBottomBorder(currentShape, canvas.height) || hasVerticalBlockBarriers(currentShape, passedBlocks)) {
+        currentShape.blocks.forEach(block => passedBlocks.push(block));
+        currentShape = getNextShape();
+        clearLines();
+        if (passedBlocks.some(block => block.position.y === 0))
+            gameOver();
+            //console.table(currentShape.blocks.map(block => block.position.y));
+    }
+    let shapeMovement = new ShapeMovement(currentShape);
+    shapeMovement.moveDown(movementMode.fast);
 }
 
 function stop() {
@@ -226,6 +240,8 @@ document.addEventListener('keydown', function (e) {
     }
 });
 
+//border detections
+
 function isShapeReachLeftBorder(shape) {
     return shape.blocks.some(block => 0 >= block.position.x - shape.blockSize);
 }
@@ -235,7 +251,7 @@ function isShapeReachRightBorder(shape) {
 }
 
 function isShapeReachBottomBorder(shape, border) {
-    return shape.blocks.some(block => block.position.y >= border - (shape.blockSize + shape.blockMargin) / 2.0);
+    return shape.blocks.some(block => block.position.y === border - (shape.blockSize + shape.blockMargin) / 2.0);
 }
 
 class TetrisDraw{
@@ -286,6 +302,8 @@ class TetrisDraw{
 
 }
 
+//drawing
+
 function drawBlock(block) {
     ctx.beginPath();
     ctx.rect(block.position.x, block.position.y, block.size, block.size / 2.0);
@@ -312,34 +330,15 @@ function draw() {
     //should be redraw not each time, but window clear every time
     drawPassedBlocks(passedBlocks);
     drawShape(currentShape);
-
-    if (isShapeReachBottomBorder(currentShape, canvas.height) || hasVerticalBlockBarriers(currentShape, passedBlocks)) {
-        currentShape.blocks.forEach(block => passedBlocks.push(block));
-        currentShape = getNextShape();
-        clearLines();
-        if (passedBlocks.some(block => block.position.y > 0 && block.position.y <= block.size + block.blockMargin))
-            gameOver();
-    }
-    let shapeMovement = new ShapeMovement(currentShape);
-    shapeMovement.moveDown(movementMode.fast);
 }
 
-// function drawGrid() {
-//     for (var i = 0; i < canvas.height; i += ((blockSize + blockMargin) / 2.0)) {
-//         for (var j = 1; j < canvas.width; j += blockSize + blockMargin) {
-//             drawBlock(new Block(new Position(j, i), "#e5e5e5", blockSize));
-//         }
-//     }
-// }
+// blocks detection
 
 function hasVerticalBlockBarriers(shape, passedBlocks) {
-    let lowestBlocksPosition = shape.BottomBlocks.map(block => block.position)
-    var barriers = passedBlocks.filter(block => lowestBlocksPosition.
-        some(bposition => {
-            return bposition.x === block.position.x &&
-             block.position.y >= bposition.y &&
-             block.position.y - (blockSize / 2.0) - blockMargin <= bposition.y
-        }));
+    let shapeHorizontalCoordinates = shape.blocks.filter(block => block.position.x);
+    let bottomBlocks = shape.BottomBlocks;
+    var barriers = passedBlocks.filter(block => bottomBlocks.some(bblocks =>  
+        bblocks.position.x === block.position.x && bblocks.position.y + (blockSize + blockMargin) / 2.0 === block.position.y));
     return barriers && barriers.length;
 }
 
@@ -361,18 +360,15 @@ function hasRightBlockBarriers(shape, passedBlocks) {
     return rightBarriers && rightBarriers.length;
 }
 
-function getLineBlocks(passedBlocks, line) {
-    return passedBlocks.filter(block => block.position.y >= line && block.position.y - block.size - blockMargin <= line);
-}
+//clear line logic
 
 function clearLines() {
     let lines = [...new Set(passedBlocks.map(block => block.position.y))];
     lines.forEach(line => {
-        let lineBlocks = getLineBlocks(passedBlocks, line);
+        let lineBlocks = passedBlocks.filter(block => block.position.y === line);
         if (isAllBlocksInLineHasSameColor(lineBlocks)) {
-            console.log("yep");
-            let clearedLines = passedBlocks.filter(block => block.position.y < line);
-            passedBlocks = getMovedDownBlocks(clearedLines, line);
+            let aboveLineBlocks  = passedBlocks.filter(block => block.position.y < line);       
+            passedBlocks = getMovedDownBlocks(aboveLineBlocks, line).concat(passedBlocks.filter(block => block.position.y > line));
             score += 10;
             changeScore(score);
         }
@@ -380,18 +376,11 @@ function clearLines() {
 }
 
 function isAllBlocksInLineHasSameColor(lineBlocks) {
-    let blocksHasSameColor = false;
-    if (lineBlocks.length == blocksInLine && lineBlocks.every(block => block.color === lineBlocks[0].color)) {
-        blocksHasSameColor = true;
-    }
-    return blocksHasSameColor;
+    return lineBlocks.length == blocksInLine && lineBlocks.every(block => block.color === lineBlocks[0].color);
 }
 
-
-function getMovedDownBlocks(passedBlocks, line) {
-    let blocks = passedBlocks.filter(block => block.position.y > line);
-    blocks.forEach(block => block.position.y -= block.size + block.blockMargin);
-    return blocks;
+function getMovedDownBlocks(blocks, line) {
+    return blocks.forEach(block => block.position.y += (block.size + blockMargin) / 2.0);
 }
 
 
