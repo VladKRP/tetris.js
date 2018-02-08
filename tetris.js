@@ -85,11 +85,62 @@ class Shape {
         this.position = position;
         this.create();
     }
+
+    getTopCoordinate() {
+        return Math.min(...this.blocks.map(block => block.position.y));
+    }
+
+    get TopBlocks(){
+        return this.blocks.filter(block => block.position.y === this.getTopCoordinate());
+    }
+
+    getBottomCoordinate() {
+        return Math.max(...this.blocks.map(block => block.position.y));
+    }
+
+    get BottomBlocks(){
+        return this.blocks.filter(block => block.position.y === this.getBottomCoordinate());
+    }
+
+    getLeftCoordinate() {
+        return Math.min(...this.blocks.map(block => block.position.x));
+    }
+
+    get LeftBlocks() {
+        return this.blocks.filter(block => block.position.x === this.getLeftCoordinate());
+    }
+
+    getRightCoordinate() {
+        return Math.max(...this.blocks.map(block => block.position.x));
+    }
+
+    get RightBlocks() {
+        return this.blocks.filter(block => block.position.x === this.getRightCoordinate());
+    }
+}
+
+class ShapeMovement{
+    constructor(shape){
+        this.shape = shape;
+    }
+    
+    moveLeft() {
+        this.shape.changePosition(new Position(this.shape.position.x -= this.shape.blockSize + this.shape.blockMargin, this.shape.position.y));
+    }   
+    
+    moveRight() {
+        this.shape.changePosition(new Position(this.shape.position.x += this.shape.blockSize + this.shape.blockMargin, this.shape.position.y));
+    }
+    
+    moveDown(movementMode) {
+        this.shape.changePosition(new Position(this.shape.position.x, this.shape.position.y += movementMode));
+    }
+    
 }
 
 const colors = {
     red: "#EB3349",
-    blue: "#24C6DC",
+    // blue: "#24C6DC",
     // green: "#93EDC7",
     // yellow: "#EDDE5D",
     // grey:"#808080",
@@ -117,7 +168,6 @@ var ctx = canvas.getContext("2d");
 
 let blocksInLine = canvas.width / (blockSize + blockMargin);
 
-
 let drawInterval = null;
 
 const defaultScoreEnroll = 3;
@@ -133,7 +183,7 @@ let passedBlocks = [];
 function play() {
     drawInterval = setInterval(draw, 40);
     let btn = document.querySelector("#play-btn");
-    btn.setAttribute("disabled","");
+    btn.setAttribute("disabled", "");
     canvas.focus();
 }
 
@@ -145,10 +195,9 @@ function stop() {
 
 function gameOver() {
     stop();
-    score = 0;
     passedBlocks = [];
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    changeRecord(score);
+    changeScore(0);
     alert("Game over");
 }
 
@@ -158,17 +207,18 @@ function getNextShape() {
 
 document.addEventListener('keydown', function (e) {
     if (e.target == canvas) {
+        let shapeMovement = new ShapeMovement(currentShape);
         switch (e.keyCode) {
             case hotkeys.left:
-                if (!isShapeReachLeftBorder(currentShape) && !hasHorizontalBarriers(currentShape, passedBlocks, true))
-                    moveShapeLeft(currentShape);
+                if (!isShapeReachLeftBorder(currentShape) && !hasLeftBlockBarriers(currentShape, passedBlocks))
+                    shapeMovement.moveLeft();
                 break;
             case hotkeys.right:
-                if (!isShapeReachRightBorder(currentShape)  && !hasHorizontalBarriers(currentShape, passedBlocks, false))
-                    moveShapeRight(currentShape);
+                if (!isShapeReachRightBorder(currentShape) && !hasRightBlockBarriers(currentShape, passedBlocks))
+                    shapeMovement.moveRight();
                 break;
             case hotkeys.up: {
-                if (!isShapeReachLeftBorder(currentShape)  && !isShapeReachRightBorder(currentShape) )
+                if (!isShapeReachLeftBorder(currentShape) && !isShapeReachRightBorder(currentShape))
                     currentShape.rotate();
                 break;
             }
@@ -180,24 +230,60 @@ function isShapeReachLeftBorder(shape) {
     return shape.blocks.some(block => 0 >= block.position.x - shape.blockSize);
 }
 
-function moveShapeLeft(shape) {
-    shape.changePosition(new Position(shape.position.x -= shape.blockSize + shape.blockMargin, shape.position.y));
-}
-
 function isShapeReachRightBorder(shape) {
     return shape.blocks.some(block => canvas.width <= block.position.x + shape.blockSize);
 }
 
-function moveShapeRight(shape) {
-    shape.changePosition(new Position(shape.position.x += shape.blockSize + shape.blockMargin, shape.position.y));
-}
-
 function isShapeReachBottomBorder(shape, border) {
-    return shape.blocks.some(block => block.position.y >= border - (shape.blockSize / 2.0) - shape.blockMargin);
+    return shape.blocks.some(block => block.position.y >= border - (shape.blockSize + shape.blockMargin) / 2.0);
 }
 
-function moveShapeDown(shape, movementMode) {
-    shape.changePosition(new Position(shape.position.x, shape.position.y += movementMode));
+class TetrisDraw{
+
+    constructor(canvas){
+        this.canvas = canvas;
+        this.ctx = canvas.getContext("2d");
+    }
+
+    drawBlock(block) {
+        this.ctx.beginPath();
+        this.ctx.rect(block.position.x, block.position.y, block.size, block.size / 2.0);
+        this.ctx.fillStyle = block.color;
+        this.ctx.fill();
+        this.ctx.closePath();
+    }
+
+    drawShape(shape) {
+        if (shape) {
+            shape.blocks.forEach(block => drawBlock(block));
+        }
+    }
+
+    drawPassedBlocks(passedBlocks) {
+        if (passedBlocks && passedBlocks.length) {
+            passedBlocks.forEach(block => drawBlock(block));
+        }
+    }
+
+    draw() {
+        this.ctx.clearRect(0, 0, canvas.width, canvas.height);
+        //here should be restoring previously added blocks
+        //should be redraw not each time, but window clear every time
+        drawPassedBlocks(passedBlocks);
+        drawShape(currentShape);
+    
+        if (isShapeReachBottomBorder(currentShape, canvas.height) || hasVerticalBlockBarriers(currentShape, passedBlocks)) {
+            currentShape.blocks.forEach(block => passedBlocks.push(block));
+            currentShape = getNextShape();
+            clearLines();
+            if (passedBlocks.some(block => block.position.y > 0 && block.position.y <= block.size + block.blockMargin))
+                gameOver();
+        }
+        moveShapeDown(currentShape, movementMode.fast);
+    }
+
+
+
 }
 
 function drawBlock(block) {
@@ -231,10 +317,11 @@ function draw() {
         currentShape.blocks.forEach(block => passedBlocks.push(block));
         currentShape = getNextShape();
         clearLines();
-        if(passedBlocks.some(block => block.position.y > 0 && block.position.y <= block.size + block.blockMargin))//don't work
+        if (passedBlocks.some(block => block.position.y > 0 && block.position.y <= block.size + block.blockMargin))
             gameOver();
     }
-    moveShapeDown(currentShape, movementMode.fast);
+    let shapeMovement = new ShapeMovement(currentShape);
+    shapeMovement.moveDown(movementMode.fast);
 }
 
 // function drawGrid() {
@@ -245,50 +332,33 @@ function draw() {
 //     }
 // }
 
-
-function getShapeLowestBlocksPosition(shape) {
-    let shapeBlocksHorizontalCoordinates = [...new Set(shape.blocks.map(block => block.position.x))];
-    return shapeBlocksHorizontalCoordinates.map(x => {
-        return new Position(x, Math.max(...shape.blocks.filter(block => block.position.x === x).map(block => block.position.y)));
-    });
-}
-
-function getVerticalBarriersBlocks(passedBlocks, positions) {
-    return passedBlocks.filter(block => positions.some(bposition => bposition.x === block.position.x && block.position.y >= bposition.y && block.position.y - (blockSize / 2.0) - blockMargin <= bposition.y));
-}
-
 function hasVerticalBlockBarriers(shape, passedBlocks) {
-    let hasBarriers = false;
-    var lowestBlocksPosition = getShapeLowestBlocksPosition(shape);
-    var barriers = getVerticalBarriersBlocks(passedBlocks, lowestBlocksPosition);
-    if (barriers && barriers.length)
-        hasBarriers = true;
-    return hasBarriers;
+    let lowestBlocksPosition = shape.BottomBlocks.map(block => block.position)
+    var barriers = passedBlocks.filter(block => lowestBlocksPosition.
+        some(bposition => {
+            return bposition.x === block.position.x &&
+             block.position.y >= bposition.y &&
+             block.position.y - (blockSize / 2.0) - blockMargin <= bposition.y
+        }));
+    return barriers && barriers.length;
 }
 
-function hasHorizontalBarriers(shape, passedBlocks, isLeft) {//refactor
-    let hasBarrier = false;
-    if (isLeft) {
-        let shapeMinHorizontalPosition = Math.min(...shape.blocks.map(block => block.position.x));
-        let shapeMinVerticalPosition = Math.min(...shape.blocks.map(block => block.position.y));
-        let minPositionBlocks = shape.blocks.filter(block => block.position.x === shapeMinHorizontalPosition);
-        let height = minPositionBlocks.length * shape.blockSize + minPositionBlocks.length * shape.blockMargin;
-        let horizontalBarriers = passedBlocks
-            .filter(block => block.position.x < shapeMinHorizontalPosition && block.position.x + shape.blockSize + shape.blockMargin >= shapeMinHorizontalPosition)
-            .filter(block => block.position.y > shapeMinVerticalPosition && block.position.y <= shapeMinVerticalPosition + height);
-        if (horizontalBarriers && horizontalBarriers.length)
-            hasBarrier = true;
-    } else {
-        let shapeMaxHorizontalPosition = Math.max(...shape.blocks.map(block => block.position.x));
-        var shapeMinVerticalPosition = Math.min(...shape.blocks.map(block => block.position.y));
-        var maxPositionBlocks = shape.blocks.filter(block => block.position.x === shapeMaxHorizontalPosition);
-        var height = maxPositionBlocks.length * shape.blockSize + maxPositionBlocks.length * shape.blockMargin;
-        var horizontalBarriers = passedBlocks
-            .filter(block => block.position.x >= shapeMaxHorizontalPosition && block.position.x - shape.blockSize - shape.blockMargin <= shapeMaxHorizontalPosition)
-            .filter(block => block.position.y >= shapeMaxHorizontalPosition && block.position.y <= shapeMaxHorizontalPosition + height);
+function hasLeftBlockBarriers(shape, passedBlocks) {
+    let shapeLeftBlocks = shape.LeftBlocks;
+    let bottomLeftBlock = Math.max(...shapeLeftBlocks.map(block => block.position.y));
+    let leftBarriers = passedBlocks
+        .filter(block => block.position.x < shapeLeftBlocks[0].position.x && block.position.x + shape.blockSize + shape.blockMargin >= shapeLeftBlocks[0].position.x)
+        .filter(block => block.position.y >= bottomLeftBlock && block.position.y - (shape.blockSize + shape.blockMargin) / 2.0 <= bottomLeftBlock);
+    return leftBarriers && leftBarriers.length;
+}
 
-    }
-    return hasBarrier;
+function hasRightBlockBarriers(shape, passedBlocks) {
+    let shapeRightBlocks = shape.RightBlocks;
+    let bottomRightBlock = Math.max(...shapeRightBlocks.map(block => block.position.y));
+    let rightBarriers = passedBlocks
+        .filter(block => block.position.x > shapeRightBlocks[0].position.x && block.position.x - shape.blockSize - shape.blockMargin <= shapeRightBlocks[0].position.x)
+        .filter(block => block.position.y >= bottomRightBlock && block.position.y - (shape.blockSize + shape.blockMargin) / 2.0 <= bottomRightBlock);
+    return rightBarriers && rightBarriers.length;
 }
 
 function getLineBlocks(passedBlocks, line) {
@@ -346,8 +416,7 @@ function getRandomShape(shapeTypes) {
 
 //Score logic
 
-function changeScore() {
-    score += defaultScoreEnroll;
+function changeScore(score) {
     let scoreElement = document.querySelector("#player-score");
     scoreElement.innerHTML = score;
 }
@@ -357,8 +426,4 @@ function changeRecord(score) {
         localStorage.setItem("userRecord", score);
     }
     document.querySelector("#record-player-score").innerHTML = localStorage.userRecord;
-}
-
-function clearScore() {
-    score = 0;
 }
