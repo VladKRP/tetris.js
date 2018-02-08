@@ -141,10 +141,10 @@ class ShapeMovement{
 }
 
 const colors = {
-    //red: "#EB3349",
+    red: "#EB3349",
     // blue: "#24C6DC",
-    //green: "#93EDC7",
-    yellow: "#EDDE5D",
+    green: "#93EDC7",
+    //yellow: "#EDDE5D",
     // grey:"#808080",
     // purple:"#808080"
 };
@@ -369,14 +369,12 @@ function hasRightBlockBarriers(shape, passedBlocks) {
 function clearLines() {
     let lines = [...new Set(passedBlocks.map(block => block.position.y))];
     lines.forEach(line => {
-        console.table(passedBlocks.map(block => block.position));
         let lineBlocks = passedBlocks.filter(block => block.position.y === line);
         
         if (isAllBlocksInLineHasSameColor(lineBlocks)) {
             let aboveLineBlocks  = passedBlocks.filter(block => block.position.y < line);     
             let belowLineBlocks =  passedBlocks.filter(block => block.position.y > line);
             aboveLineBlocks = getMovedDownBlocks(aboveLineBlocks, belowLineBlocks, line);
-            console.table(aboveLineBlocks);
             passedBlocks = belowLineBlocks.concat(aboveLineBlocks);
             score += 10;
             changeScore(score);
