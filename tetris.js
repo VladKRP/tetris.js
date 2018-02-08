@@ -346,8 +346,8 @@ function hasLeftBlockBarriers(shape, passedBlocks) {
     let shapeLeftBlocks = shape.LeftBlocks;
     let bottomLeftBlock = Math.max(...shapeLeftBlocks.map(block => block.position.y));
     let leftBarriers = passedBlocks
-        .filter(block => block.position.x < shapeLeftBlocks[0].position.x && block.position.x + shape.blockSize + shape.blockMargin >= shapeLeftBlocks[0].position.x)
-        .filter(block => block.position.y >= bottomLeftBlock && block.position.y - (shape.blockSize + shape.blockMargin) / 2.0 <= bottomLeftBlock);
+        .filter(block => block.position.x + shape.blockSize + shape.blockMargin === shapeLeftBlocks[0].position.x)
+        .filter(block => block.position.y >= bottomLeftBlock && block.position.y - (shape.blockSize + shape.blockMargin) * shapeLeftBlocks.length / 2.0 <= bottomLeftBlock);
     return leftBarriers && leftBarriers.length;
 }
 
@@ -355,8 +355,8 @@ function hasRightBlockBarriers(shape, passedBlocks) {
     let shapeRightBlocks = shape.RightBlocks;
     let bottomRightBlock = Math.max(...shapeRightBlocks.map(block => block.position.y));
     let rightBarriers = passedBlocks
-        .filter(block => block.position.x > shapeRightBlocks[0].position.x && block.position.x - shape.blockSize - shape.blockMargin <= shapeRightBlocks[0].position.x)
-        .filter(block => block.position.y >= bottomRightBlock && block.position.y - (shape.blockSize + shape.blockMargin) / 2.0 <= bottomRightBlock);
+        .filter(block => block.position.x - shape.blockSize - shape.blockMargin === shapeRightBlocks[0].position.x)
+        .filter(block => block.position.y >= bottomRightBlock && block.position.y - (shape.blockSize + shape.blockMargin) * shapeRightBlocks.length / 2.0 <= bottomRightBlock);
     return rightBarriers && rightBarriers.length;
 }
 
