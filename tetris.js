@@ -99,7 +99,9 @@ class Shape {
     }
 
     get BottomBlocks(){
-        return this.blocks.filter(block => block.position.y === this.getBottomCoordinate());
+        let xCoordinates = [...new Set(this.blocks.map(block => block.position.x))];
+        let bottomBlocksCoord = xCoordinates.map(x => new Position(x, Math.min(...this.blocks.filter(block => block.position.x === x).map(block => block.position.y))));
+        return this.blocks.filter(block => bottomBlocksCoord.filter(bbcoord => bbcoord.x === block.position.x && bbcoord.y === block.position.y));
     }
 
     getLeftCoordinate() {
@@ -193,7 +195,7 @@ function startGameCycle(){
         currentShape.blocks.forEach(block => passedBlocks.push(block));
         currentShape = getNextShape();
         clearLines();
-        if (passedBlocks.some(block => block.position.y === 0))
+        if (passedBlocks.some(block => block.position.y >= 0 && block.position.y <= (block.size + blockMargin) / 2.0))
             gameOver();
             //console.table(currentShape.blocks.map(block => block.position.y));
     }
@@ -232,8 +234,11 @@ document.addEventListener('keydown', function (e) {
                     shapeMovement.moveRight();
                 break;
             case hotkeys.up: {
-                if (!isShapeReachLeftBorder(currentShape) && !isShapeReachRightBorder(currentShape))
-                    currentShape.rotate();
+                let rotatedShape = new Shape();
+                Object.assign(rotatedShape,currentShape);
+                rotatedShape.rotate();
+                if (!isShapeReachLeftBorder(rotatedShape) && !isShapeReachRightBorder(rotatedShape))
+                    currentShape = rotatedShape;
                 break;
             }
         }
@@ -337,8 +342,7 @@ function draw() {
 function hasVerticalBlockBarriers(shape, passedBlocks) {
     let shapeHorizontalCoordinates = shape.blocks.filter(block => block.position.x);
     let bottomBlocks = shape.BottomBlocks;
-    var barriers = passedBlocks.filter(block => bottomBlocks.some(bblocks =>  
-        bblocks.position.x === block.position.x && bblocks.position.y + (blockSize + blockMargin) / 2.0 === block.position.y));
+    var barriers = passedBlocks.filter(block => bottomBlocks.some(bblock => bblock.position.x == block.position.x && bblock.position.y + (block.size + blockMargin) / 2.0 === block.position.y));
     return barriers && barriers.length;
 }
 
@@ -347,7 +351,7 @@ function hasLeftBlockBarriers(shape, passedBlocks) {
     let bottomLeftBlock = Math.max(...shapeLeftBlocks.map(block => block.position.y));
     let leftBarriers = passedBlocks
         .filter(block => block.position.x + shape.blockSize + shape.blockMargin === shapeLeftBlocks[0].position.x)
-        .filter(block => block.position.y >= bottomLeftBlock && block.position.y - (shape.blockSize + shape.blockMargin) * shapeLeftBlocks.length / 2.0 <= bottomLeftBlock);
+        .filter(block => block.position.y >= bottomLeftBlock && block.position.y - (shape.blockSize + shape.blockMargin)/ 2.0 <= bottomLeftBlock);
     return leftBarriers && leftBarriers.length;
 }
 
@@ -356,7 +360,7 @@ function hasRightBlockBarriers(shape, passedBlocks) {
     let bottomRightBlock = Math.max(...shapeRightBlocks.map(block => block.position.y));
     let rightBarriers = passedBlocks
         .filter(block => block.position.x - shape.blockSize - shape.blockMargin === shapeRightBlocks[0].position.x)
-        .filter(block => block.position.y >= bottomRightBlock && block.position.y - (shape.blockSize + shape.blockMargin) * shapeRightBlocks.length / 2.0 <= bottomRightBlock);
+        .filter(block => block.position.y >= bottomRightBlock && block.position.y - (shape.blockSize + shape.blockMargin) / 2.0 <= bottomRightBlock);
     return rightBarriers && rightBarriers.length;
 }
 
