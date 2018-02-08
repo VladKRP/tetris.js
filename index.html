@@ -2,28 +2,46 @@
 <!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
 <!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
 <!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title></title>
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="style.css"></link>
-    </head>
-    <body>
-        <!--[if lt IE 7]>
+<!--[if gt IE 8]><!-->
+<html class="no-js">
+<!--<![endif]-->
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="style.css"></link>
+</head>
+
+<body>
+    <!--[if lt IE 7]>
             <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
-        <header>
-            <h1>Tetris.js</h1>
-            <p>Tetris game on js</p>
-        </header>
-        <section class="game-section">
-            <div id="game-window">
-                    <button onclick="play()" class="play-btn">Start</button>
-            </div>
-        </section>
-        <script src="tetris.js"> </script>
-    </body>
+    <header>
+        <h1>Tetris.js</h1>
+        <p>Tetris game on js</p>
+    </header>
+    <section class="game-section">
+        <div class="score">
+            <span>
+                    Score:<span id="player-score">0</span>
+            </span>
+            <span>
+                Record score:<span id="record-player-score">0</span>
+            </span>       
+            
+        </div>
+        <div class="navigation">
+            <button onclick="play()" id="play-btn" class="game-btn">Start</button>
+            <button onclick="stop()" id="stop-btn" class="game-btn">Stop</button> 
+        </div>
+        <canvas id="tetris-game" tabindex="1"></canvas>     
+    </section>
+    <!-- <script type="module" src="shapeTypes.js"></script> -->
+    <script src="tetris.js">
+    </script>
+</body>
+
 </html>

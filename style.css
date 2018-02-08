@@ -16,30 +16,47 @@ header{
 }
 
 header p{
-    margin:0.7em;
+    margin:0.1em;
     font-size: 19px;
 }
 
-#game-window{
-    background-color:#333;
-    width:400px;
+#tetris-game{
+    width:100%;
     height:400px;
-    margin:0 auto;
+    background-color:#333;
     box-shadow: 5px 5px #114357;
-    text-align: center;
-    padding:1em;
+    outline: none;
 }
 
-.play-btn{
+.game-btn{
     background-color:inherit;
-    border: 2px solid #eee;
     padding:7px 16px;
-    color:#eee;
-    font-size: 14px;
+    color:#333;
+    font-size: 13px;
+    font-weight: 600;
+    border:1px solid #333;
+    box-shadow: 2px 2px #333;
+    
 }
 
 .game-section{
+    width:400px;
+    height:500px;
+    margin:0 auto;
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
+    flex-direction: column;
+    padding:1em;
+}
+
+.game-section .navigation{
+    text-align: center;
+    margin: 0.2em;
+}
+
+
+.game-section .score{
+    text-align: right;
+    display: flex;
     flex-direction: column;
 }
