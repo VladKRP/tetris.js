@@ -1,4 +1,32 @@
-/** @constant {Array<Array<Array<number>>>} */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: tetris.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: tetris.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/** @constant {Array&lt;Array&lt;Array&lt;number>>>} */
 const shapeTypes = [
     [
         [0, 0, 0],
@@ -118,8 +146,8 @@ class Shape {
      */
     create() {
         this.blocks = [];
-        for (var i = 0; i < this.shapeType.length; i++) {
-            for (var j = 0; j < this.shapeType[i].length; j++) {
+        for (var i = 0; i &lt; this.shapeType.length; i++) {
+            for (var j = 0; j &lt; this.shapeType[i].length; j++) {
                 if (this.shapeType[i][j])
                     this.blocks.push(
                         new Block(
@@ -159,7 +187,7 @@ class Shape {
 
     /**
      * Получение блоков с наименьшей координатой фигуры по оси y
-     * @returns {Array<Block>} верхние блоки 
+     * @returns {Array&lt;Block>} верхние блоки 
      */
     get TopBlocks(){
         return this.blocks.filter(block => block.position.y === this._getTopCoordinate());
@@ -175,12 +203,12 @@ class Shape {
 
      /**
      * Получение блоков с наивысшей координатой по оси y
-     * @returns {Array<Block>} нижние блоки 
+     * @returns {Array&lt;Block>} нижние блоки 
      */
     get BottomBlocks(){
         let xCoordinates = [...new Set(this.blocks.map(block => block.position.x))];
         let bottomBlocksCoord = xCoordinates.map(x => new Position(x, Math.min(...this.blocks.filter(block => block.position.x === x).map(block => block.position.y))));
-        return this.blocks.filter(block => bottomBlocksCoord.filter(bbcoord => bbcoord.x === block.position.x && bbcoord.y === block.position.y));
+        return this.blocks.filter(block => bottomBlocksCoord.filter(bbcoord => bbcoord.x === block.position.x &amp;&amp; bbcoord.y === block.position.y));
     }
 
     /**
@@ -193,7 +221,7 @@ class Shape {
 
     /**
      * Получение блоков с наименьшей координатой по оси х
-     * @returns {Array<Block>} левые блоки 
+     * @returns {Array&lt;Block>} левые блоки 
      */
     get LeftBlocks() {
         return this.blocks.filter(block => block.position.x === this._getLeftCoordinate());
@@ -209,7 +237,7 @@ class Shape {
 
       /**
      * Получение блоков с гаибольшей координатой по оси х
-     * @returns {Array<Block>} правые блоки 
+     * @returns {Array&lt;Block>} правые блоки 
      */
     get RightBlocks() {
         return this.blocks.filter(block => block.position.x === this._getRightCoordinate());
@@ -296,7 +324,7 @@ function startGameCycle(){
         currentShape.blocks.forEach(block => passedBlocks.push(block));
         currentShape = getNextShape();
         clearLines();
-        if (passedBlocks.some(block => block.position.y >= 0 && block.position.y <= (block.size + blockMargin) / 2.0))
+        if (passedBlocks.some(block => block.position.y >= 0 &amp;&amp; block.position.y &lt;= (block.size + blockMargin) / 2.0))
             gameOver();
     }
     let shapeMovement = new ShapeMovement(currentShape);
@@ -339,18 +367,18 @@ document.addEventListener('keydown', function (e) {
         let shapeMovement = new ShapeMovement(currentShape);
         switch (e.keyCode) {
             case hotkeys.left:
-                if (!isShapeReachLeftBorder(currentShape) && !hasLeftBlockBarriers(currentShape, passedBlocks))
+                if (!isShapeReachLeftBorder(currentShape) &amp;&amp; !hasLeftBlockBarriers(currentShape, passedBlocks))
                     shapeMovement.moveLeft();
                 break;
             case hotkeys.right:
-                if (!isShapeReachRightBorder(currentShape) && !hasRightBlockBarriers(currentShape, passedBlocks))
+                if (!isShapeReachRightBorder(currentShape) &amp;&amp; !hasRightBlockBarriers(currentShape, passedBlocks))
                     shapeMovement.moveRight();
                 break;
             case hotkeys.up: {
                 let rotatedShape = new Shape();
                 Object.assign(rotatedShape,currentShape);
                 rotatedShape.rotate();
-                if (!isShapeReachLeftBorder(rotatedShape) && !isShapeReachRightBorder(rotatedShape))
+                if (!isShapeReachLeftBorder(rotatedShape) &amp;&amp; !isShapeReachRightBorder(rotatedShape))
                     currentShape = rotatedShape;
                 break;
             }
@@ -374,7 +402,7 @@ function isShapeReachLeftBorder(shape) {
  * @returns  {Boolean} возвращает True, если достигнут правый бок игрового экрана, иначе False
  */
 function isShapeReachRightBorder(shape) {
-    return shape.blocks.some(block => canvas.width <= block.position.x + shape.blockSize);
+    return shape.blocks.some(block => canvas.width &lt;= block.position.x + shape.blockSize);
 }
 
 
@@ -413,7 +441,7 @@ function drawShape(shape) {
  * @param  {Block[]} passedBlocks  массив прошедших блоков 
  */
 function drawPassedBlocks(passedBlocks) {
-    if (passedBlocks && passedBlocks.length) {
+    if (passedBlocks &amp;&amp; passedBlocks.length) {
         passedBlocks.forEach(block => drawBlock(block));
     }
 }
@@ -437,8 +465,8 @@ function draw() {
 function hasVerticalBlockBarriers(shape, passedBlocks) {
     let shapeHorizontalCoordinates = shape.blocks.filter(block => block.position.x);
     let bottomBlocks = shape.BottomBlocks;
-    var barriers = passedBlocks.filter(block => bottomBlocks.some(bblock => bblock.position.x == block.position.x && bblock.position.y + (block.size + blockMargin) / 2.0 === block.position.y));
-    return barriers && barriers.length;
+    var barriers = passedBlocks.filter(block => bottomBlocks.some(bblock => bblock.position.x == block.position.x &amp;&amp; bblock.position.y + (block.size + blockMargin) / 2.0 === block.position.y));
+    return barriers &amp;&amp; barriers.length;
 }
 
 /**
@@ -452,8 +480,8 @@ function hasLeftBlockBarriers(shape, passedBlocks) {
     let bottomLeftBlock = Math.max(...shapeLeftBlocks.map(block => block.position.y));
     let leftBarriers = passedBlocks
         .filter(block => block.position.x + shape.blockSize + shape.blockMargin === shapeLeftBlocks[0].position.x)
-        .filter(block => block.position.y >= bottomLeftBlock && block.position.y - (shape.blockSize + shape.blockMargin)/ 2.0 <= bottomLeftBlock);
-    return leftBarriers && leftBarriers.length;
+        .filter(block => block.position.y >= bottomLeftBlock &amp;&amp; block.position.y - (shape.blockSize + shape.blockMargin)/ 2.0 &lt;= bottomLeftBlock);
+    return leftBarriers &amp;&amp; leftBarriers.length;
 }
 
 /**
@@ -467,8 +495,8 @@ function hasRightBlockBarriers(shape, passedBlocks) {
     let bottomRightBlock = Math.max(...shapeRightBlocks.map(block => block.position.y));
     let rightBarriers = passedBlocks
         .filter(block => block.position.x - shape.blockSize - shape.blockMargin === shapeRightBlocks[0].position.x)
-        .filter(block => block.position.y >= bottomRightBlock && block.position.y - (shape.blockSize + shape.blockMargin) / 2.0 <= bottomRightBlock);
-    return rightBarriers && rightBarriers.length;
+        .filter(block => block.position.y >= bottomRightBlock &amp;&amp; block.position.y - (shape.blockSize + shape.blockMargin) / 2.0 &lt;= bottomRightBlock);
+    return rightBarriers &amp;&amp; rightBarriers.length;
 }
 
 /**
@@ -480,7 +508,7 @@ function clearLines() {
         let lineBlocks = passedBlocks.filter(block => block.position.y === line);
         
         if (isAllBlocksInLine(lineBlocks)) {
-            let aboveLineBlocks  = passedBlocks.filter(block => block.position.y < line);     
+            let aboveLineBlocks  = passedBlocks.filter(block => block.position.y &lt; line);     
             let belowLineBlocks =  passedBlocks.filter(block => block.position.y > line);
             aboveLineBlocks = getMovedDownBlocks(aboveLineBlocks, belowLineBlocks, line);
             passedBlocks = belowLineBlocks.concat(aboveLineBlocks);
@@ -492,7 +520,7 @@ function clearLines() {
 
 /**
  * Проверка заполненна ли линия блоками
- * @param  {Array<Block>} lineBlocks блоки с одинаковыми координатами по оси y
+ * @param  {Array&lt;Block>} lineBlocks блоки с одинаковыми координатами по оси y
  */
 function isAllBlocksInLine(lineBlocks) {
     return lineBlocks.length == blocksInLine;
@@ -500,16 +528,16 @@ function isAllBlocksInLine(lineBlocks) {
 
 /**
  * Получение блоков смещенных вниз
- * @param  {Array<Block>} aboveLineBlocks блоки находящиеся над удаленной линией
- * @param  {Array<Block>} belowLineBlocks блоки находящиеся под удаленной линией
- * @returns {Array<Block>} блоки смещенные вниз
+ * @param  {Array&lt;Block>} aboveLineBlocks блоки находящиеся над удаленной линией
+ * @param  {Array&lt;Block>} belowLineBlocks блоки находящиеся под удаленной линией
+ * @returns {Array&lt;Block>} блоки смещенные вниз
  */
 function getMovedDownBlocks(aboveLineBlocks, belowLineBlocks) {
 
-    for(var i = 0; i < aboveLineBlocks.length; i++){
+    for(var i = 0; i &lt; aboveLineBlocks.length; i++){
         let block = aboveLineBlocks[i];
         let newBlockVerticalPosition = block.position.y; 
-        let belowBlocks = belowLineBlocks.some(eblock => eblock.position.x === block.position.x && eblock.position.y === newBlockVerticalPosition + (block.size + blockMargin) / 2.0);
+        let belowBlocks = belowLineBlocks.some(eblock => eblock.position.x === block.position.x &amp;&amp; eblock.position.y === newBlockVerticalPosition + (block.size + blockMargin) / 2.0);
        
         while(newBlockVerticalPosition + ((block.size + blockMargin) / 2.0) === canvas.height || belowBlocks){
             continue;
@@ -547,8 +575,8 @@ function getRandomColor(colors) {
 
 /**
  * Генератор случайного типа фигуры
- * @param  {Array<Array<number[]>>} shapeTypes типы фигур имеющихся в игре
- * @returns {Array<number[]>} случайный тип фигуры
+ * @param  {Array&lt;Array&lt;number[]>>} shapeTypes типы фигур имеющихся в игре
+ * @returns {Array&lt;number[]>} случайный тип фигуры
  */
 function getRandomShapeType(shapeTypes) {
     var shapeIndex = getRandomNumberOnInterval(0, shapeTypes.length - 1);
@@ -568,8 +596,30 @@ function changeScore(score) {
  * @param  {number} score очки
  */
 function changeRecord(score) {
-    if (!localStorage.userRecord || localStorage.userRecord < score) {
+    if (!localStorage.userRecord || localStorage.userRecord &lt; score) {
         localStorage.setItem("userRecord", score);
     }
     document.querySelector("#record-player-score").innerHTML = localStorage.userRecord;
-}
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Block.html">Block</a></li><li><a href="Position.html">Position</a></li><li><a href="Shape.html">Shape</a></li><li><a href="ShapeMovement.html">ShapeMovement</a></li></ul><h3>Global</h3><ul><li><a href="global.html#blockMargin">blockMargin</a></li><li><a href="global.html#blocksInLine">blocksInLine</a></li><li><a href="global.html#blockSize">blockSize</a></li><li><a href="global.html#canvas">canvas</a></li><li><a href="global.html#canvasCenter">canvasCenter</a></li><li><a href="global.html#changeRecord">changeRecord</a></li><li><a href="global.html#changeScore">changeScore</a></li><li><a href="global.html#clearLines">clearLines</a></li><li><a href="global.html#colors">colors</a></li><li><a href="global.html#ctx">ctx</a></li><li><a href="global.html#currentShape">currentShape</a></li><li><a href="global.html#defaultScoreEnroll">defaultScoreEnroll</a></li><li><a href="global.html#draw">draw</a></li><li><a href="global.html#drawBlock">drawBlock</a></li><li><a href="global.html#drawInterval">drawInterval</a></li><li><a href="global.html#drawPassedBlocks">drawPassedBlocks</a></li><li><a href="global.html#drawShape">drawShape</a></li><li><a href="global.html#gameOver">gameOver</a></li><li><a href="global.html#getMovedDownBlocks">getMovedDownBlocks</a></li><li><a href="global.html#getNextShape">getNextShape</a></li><li><a href="global.html#getRandomColor">getRandomColor</a></li><li><a href="global.html#getRandomNumberOnInterval">getRandomNumberOnInterval</a></li><li><a href="global.html#getRandomShapeType">getRandomShapeType</a></li><li><a href="global.html#hasLeftBlockBarriers">hasLeftBlockBarriers</a></li><li><a href="global.html#hasRightBlockBarriers">hasRightBlockBarriers</a></li><li><a href="global.html#hasVerticalBlockBarriers">hasVerticalBlockBarriers</a></li><li><a href="global.html#hotkeys">hotkeys</a></li><li><a href="global.html#isAllBlocksInLine">isAllBlocksInLine</a></li><li><a href="global.html#isShapeReachBottomBorder">isShapeReachBottomBorder</a></li><li><a href="global.html#isShapeReachLeftBorder">isShapeReachLeftBorder</a></li><li><a href="global.html#isShapeReachRightBorder">isShapeReachRightBorder</a></li><li><a href="global.html#movementMode">movementMode</a></li><li><a href="global.html#movementSpeed">movementSpeed</a></li><li><a href="global.html#passedBlocks">passedBlocks</a></li><li><a href="global.html#play">play</a></li><li><a href="global.html#score">score</a></li><li><a href="global.html#shapeTypes">shapeTypes</a></li><li><a href="global.html#startGameCycle">startGameCycle</a></li><li><a href="global.html#stop">stop</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Mon Feb 12 2018 13:18:05 GMT+0300 (Belarus Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
