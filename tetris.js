@@ -482,7 +482,7 @@ function clearLines() {
         if (isAllBlocksInLine(lineBlocks)) {
             let aboveLineBlocks  = passedBlocks.filter(block => block.position.y < line);     
             let belowLineBlocks =  passedBlocks.filter(block => block.position.y > line);
-            aboveLineBlocks = getMovedDownBlocks(aboveLineBlocks, belowLineBlocks, line);
+            aboveLineBlocks = getMovedDownBlocks(aboveLineBlocks);
             passedBlocks = belowLineBlocks.concat(aboveLineBlocks);
             score += defaultScoreEnroll;
             changeScore(score);
@@ -501,24 +501,11 @@ function isAllBlocksInLine(lineBlocks) {
 /**
  * Получение блоков смещенных вниз
  * @param  {Array<Block>} aboveLineBlocks блоки находящиеся над удаленной линией
- * @param  {Array<Block>} belowLineBlocks блоки находящиеся под удаленной линией
  * @returns {Array<Block>} блоки смещенные вниз
  */
-function getMovedDownBlocks(aboveLineBlocks, belowLineBlocks) {
-
-    for(var i = 0; i < aboveLineBlocks.length; i++){
-        let block = aboveLineBlocks[i];
-        let newBlockVerticalPosition = block.position.y; 
-        let belowBlocks = belowLineBlocks.some(eblock => eblock.position.x === block.position.x && eblock.position.y === newBlockVerticalPosition + (block.size + blockMargin) / 2.0);
-       
-        while(newBlockVerticalPosition + ((block.size + blockMargin) / 2.0) === canvas.height || belowBlocks){
-            continue;
-        }
-        newBlockVerticalPosition +=  (block.size + blockMargin) / 2.0;
-        block.position.y = newBlockVerticalPosition;   
-    }
-
-    return blocks;
+function getMovedDownBlocks(aboveLineBlocks) {
+    aboveLineBlocks.forEach(block => block.position.y += (block.size + blockMargin) / 2.0);
+    return aboveLineBlocks;
 }
 
 
